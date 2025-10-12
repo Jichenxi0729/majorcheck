@@ -881,6 +881,135 @@ function clearHistory() {
     }
 }
 
+// 简化版导入历史记录功能
+function importHistory() {
+    // 创建文件输入元素
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.json';
+    fileInput.style.display = 'none';
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                let importedData;
+                
+                if (fileExtension === 'csv') {
+                    importedData = parseCSVData(e.target.result);
+                } else if (fileExtension === 'json') {
+                    importedData = JSON.parse(e.target.result);
+                } else {
+                    alert('请选择CSV或JSON格式的文件！');
+                    return;
+                }
+                
+                // 统计信息
+                const stats = calculateImportStats(importedData);
+                
+                // 简单确认对话框
+                if (confirm(`检测到 ${stats.universityCount} 个大学，${stats.majorCount} 个专业记录\n通过: ${stats.totalPass} 次，不通过: ${stats.totalReject} 次\n\n是否确认导入？`)) {
+                    // 合并数据
+                    mergeImportedData(importedData);
+                    alert('导入成功！');
+                    renderHistory();
+                }
+                
+            } catch (error) {
+                console.error('导入错误:', error);
+                alert('导入失败：文件格式不正确！');
+            }
+        };
+        
+        reader.onerror = function() {
+            alert('文件读取失败！');
+        };
+        
+        reader.readAsText(file, 'UTF-8');
+    });
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+}
+
+// 解析CSV数据（简化版）
+function parseCSVData(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+    if (lines.length < 2) return {};
+    
+    const importedData = {};
+    
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',');
+        if (values.length < 3) continue;
+        
+        const university = values[0].replace(/^"|"$/g, '').trim();
+        const major = values[1].replace(/^"|"$/g, '').trim();
+        const passCount = parseInt(values[2]) || 0;
+        const rejectCount = parseInt(values[3]) || 0;
+        
+        if (!university || !major) continue;
+        
+        if (!importedData[university]) {
+            importedData[university] = {};
+        }
+        
+        importedData[university][major] = {
+            passCount: passCount,
+            rejectCount: rejectCount,
+            lastDecision: values[5] && values[5] !== 'null' ? values[5].replace(/^"|"$/g, '') : null,
+            lastTimestamp: values[6] && values[6] !== 'null' ? values[6].replace(/^"|"$/g, '') : null,
+            rejectReason: values[7] && values[7] !== 'null' ? values[7].replace(/^"|"$/g, '') : ''
+        };
+    }
+    
+    return importedData;
+}
+
+// 统计导入数据
+function calculateImportStats(data) {
+    let universityCount = 0;
+    let majorCount = 0;
+    let totalPass = 0;
+    let totalReject = 0;
+    
+    Object.keys(data).forEach(uniName => {
+        universityCount++;
+        const majors = data[uniName];
+        
+        Object.keys(majors).forEach(majorName => {
+            majorCount++;
+            const record = majors[majorName];
+            totalPass += record.passCount || 0;
+            totalReject += record.rejectCount || 0;
+        });
+    });
+    
+    return { universityCount, majorCount, totalPass, totalReject };
+}
+
+// 合并导入的数据
+function mergeImportedData(importedData) {
+    for (const uniName in importedData) {
+        if (!majorSelectionHistory[uniName]) {
+            majorSelectionHistory[uniName] = {};
+        }
+        
+        for (const majorName in importedData[uniName]) {
+            const importedRecord = importedData[uniName][majorName];
+            
+            // 直接使用导入的数据（覆盖原有数据）
+            majorSelectionHistory[uniName][majorName] = importedRecord;
+        }
+    }
+    
+    saveMajorSelectionHistory();
+}
+
 // 只导出有历史记录的数据
 function exportHistory() {
     // 过滤出有记录的数据
