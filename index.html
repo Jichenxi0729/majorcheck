@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英国大学专业随机选择器</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- 如果你用的是 PNG 格式，则用下面这行 -->
+    <!-- <link rel="icon" type="image/png" href="/favicon.png"> -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>英国大学专业随机选择器</h1>
+            <nav>
+                <button id="homeBtn" class="nav-btn active">专业选择</button>
+                <button id="historyBtn" class="nav-btn">历史记录</button>
+            </nav>
+        </header>
+
+        <!-- 专业选择界面 -->
+        <div id="selectionPage" class="page active">
+            <div class="university-selection">
+                <h2>选择大学</h2>
+                <div id="universityList" class="university-list">
+                    <!-- 大学列表将在这里动态生成 -->
+                </div>
+            </div>
+
+            <div id="majorSelection" class="selection-area hidden">
+                <div class="current-university">
+                    <h3 id="selectedUniversity">已选择大学</h3>
+                </div>
+                <div id="majorDisplay" class="major-display">
+                    <span id="currentMajor">点击下方按钮开始</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="randomBtn" class="btn random-btn">随机选择专业</button>
+                    <button id="viewAllBtn" class="btn view-all-btn">查看所有专业</button>
+                    <div id="decisionButtons" class="decision-buttons hidden">
+                        <button id="passBtn" class="btn pass-btn">通过</button>
+                        <button id="rejectBtn" class="btn reject-btn">不通过</button>
+                    </div>
+                </div>
+                <button id="backToUniBtn" class="btn back-btn">返回大学选择</button>
+            </div>
+        </div>
+
+        <!-- 历史记录界面 -->
+        <div id="historyPage" class="page">
+            <div class="history-area">
+                <h2>选择历史</h2>
+                <div id="historyFilter" class="history-filter">
+                    <select id="universityFilter">
+                        <option value="all">所有大学</option>
+                    </select>
+                    <div class="quick-filters">
+                        <button class="quick-filter-btn active" data-filter="all">全部</button>
+                        <button class="quick-filter-btn" data-filter="pass">通过</button>
+                        <button class="quick-filter-btn" data-filter="reject">不通过</button>
+                    </div>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- 历史记录将在这里动态生成 -->
+                </div>
+                <div class="history-actions">
+                    <button onclick="exportHistory()" class="btn-export">导出为JSON</button>
+                    <button onclick="exportHistoryCSV()" class="btn-export">导出为CSV</button>
+                    <button onclick="importHistory()" class="btn-import">导入历史记录</button>
+                    <button onclick="clearHistory()" class="btn-clear">清空历史记录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
