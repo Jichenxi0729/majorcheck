@@ -633,7 +633,22 @@ nav {
 }
 
 .hidden {
-    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease;
+}
+
+.decision-buttons {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    opacity: 1;
+    visibility: visible;
+    height: auto;
+    overflow: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease;
 }
 
 /* 滚动动画（用于专业显示） */
