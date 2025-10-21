@@ -700,7 +700,7 @@ function startRandomSelection() {
 
     // 滚动动画
     let rollCount = 0;
-    const maxRolls = 20;
+    const maxRolls = 10;
     const rollInterval = setInterval(() => {
         const randomIndex = Math.floor(Math.random() * majors.length);
         const randomMajor = majors[randomIndex];
@@ -742,7 +742,7 @@ function startRandomSelection() {
                 isRolling = false;
             }, 500);
         }
-    }, 100);
+    }, 50);
 }
 
 // 处理决策
