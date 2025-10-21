@@ -23,14 +23,15 @@ body {
     border-radius: 24px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     padding: 32px;
-    margin-top: 24px;
+    margin-top: 0px;
     position: relative;
     overflow: hidden;
 }
 
 header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 30px;
+    padding-top: 20px;
 }
 
 h1 {
@@ -201,9 +202,9 @@ nav {
 
 .university-selection h2 {
     color: #0f172a;
-    margin-bottom: 20px;
-    font-size: 1.6rem;
-    font-weight: 700;
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    font-weight: 600;
 }
 
 .university-list {
@@ -308,7 +309,7 @@ nav {
 .history-area h2 {
     margin-bottom: 16px;
     color: #333;
-    font-size: 24px;
+    font-size: 1.4rem;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -654,8 +655,334 @@ nav {
     }
 }
 
+/* ========== 进度条样式 ========== */
+.progress-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 32px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.progress-header h2 {
+    color: #0f172a;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.progress-stats {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3);
+}
+
+.progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 24px;
+    background: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        #10b981 0%, 
+        #34d399 25%, 
+        #22c55e 50%, 
+        #16a34a 75%, 
+        #15803d 100%
+    );
+    border-radius: 12px;
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.progress-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.progress-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.progress-detail strong {
+    color: #0f172a;
+    font-size: 1rem;
+}
+
+/* 进度条动画效果 */
+.progress-fill.animated {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+    }
+}
+
+/* 大学进度条现代化样式 - 简化版 */
+.university-progress-section {
+    margin-bottom: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.university-progress-section .progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.university-progress-section .progress-bar {
+    flex: 1;
+    height: 28px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid #dee2e6;
+    min-width: 300px;
+    max-width: 600px;
+}
+
+.university-progress-section .progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 12px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.university-progress-section .progress-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+.university-progress-section .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+    border-radius: 12px;
+}
+
+.university-progress-section .progress-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    z-index: 2;
+    letter-spacing: 0.5px;
+}
+
+.university-progress-section .progress-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        transparent 100%
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+.university-progress-section .progress-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0;
+}
+
+.university-progress-section .progress-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    padding: 4px 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.university-progress-section .progress-detail strong {
+    color: #0f172a;
+    font-size: 0.9rem;
+}
+
+/* 进度条动画效果 - 现代化版本 */
+.university-progress-section .progress-fill.animated {
+    animation: modern-pulse 2s infinite;
+}
+
+@keyframes modern-pulse {
+    0%, 100% {
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.3),
+            0 2px 8px rgba(16, 185, 129, 0.3),
+            0 0 0 rgba(16, 185, 129, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.3),
+            0 2px 8px rgba(16, 185, 129, 0.3),
+            0 0 30px rgba(16, 185, 129, 0.8);
+        transform: scale(1.02);
+    }
+}
+
+/* 进度条颜色变化 - 蓝色主题 */
+.university-progress-section .progress-fill.low-progress {
+    background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(77,171,247,0.3);
+}
+
+.university-progress-section .progress-fill.medium-progress {
+    background: linear-gradient(135deg, #228be6 0%, #1c7ed6 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(34,139,230,0.3);
+}
+
+.university-progress-section .progress-fill.high-progress {
+    background: linear-gradient(135deg, #1971c2 0%, #1864ab 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(25,113,194,0.3);
+}
+
+.university-progress-section .progress-fill.animated {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(25,113,194,0.3);
+    }
+    50% {
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 8px rgba(25,113,194,0.6);
+    }
+    100% {
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(25,113,194,0.3);
+    }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
+    .progress-section {
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .progress-header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .progress-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .progress-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .progress-bar {
+        height: 20px;
+    }
+    
     .container {
         padding: 20px;
         border-radius: 20px;

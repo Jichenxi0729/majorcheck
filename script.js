@@ -175,6 +175,13 @@ const historyList = document.getElementById('historyList');
 const universityFilter = document.getElementById('universityFilter');
 const viewAllBtn = document.getElementById('viewAllBtn');
 
+// 大学进度条相关DOM元素
+const universityProgressText = document.getElementById('universityProgressText');
+const universityProgressFill = document.getElementById('universityProgressFill');
+const universityCheckedCount = document.getElementById('universityCheckedCount');
+const universityTotalCount = document.getElementById('universityTotalCount');
+const universityPercentage = document.getElementById('universityPercentage');
+
 // 新增：拒绝原因模态框
 const rejectReasonModal = document.createElement('div');
 rejectReasonModal.className = 'reject-reason-modal';
@@ -185,6 +192,63 @@ let isRolling = false;
 let currentUni = null;
 let majorSelectionHistory = JSON.parse(localStorage.getItem('majorSelectionHistory')) || {};
 let currentRejectItem = null; // 存储当前正在处理的拒绝项
+
+// 更新大学进度条显示
+function updateUniversityProgressBar(uniName) {
+    const progress = calculateUniversityProgress(uniName);
+    
+    // 更新文本显示（保留两位小数）
+    universityProgressText.textContent = `${progress.percentage}%`;
+    universityCheckedCount.textContent = progress.checked;
+    universityTotalCount.textContent = progress.total;
+    universityPercentage.textContent = `${progress.percentage}%`;
+    
+    // 更新进度条宽度
+    universityProgressFill.style.width = `${progress.percentage}%`;
+    
+    // 移除所有颜色类
+    universityProgressFill.classList.remove('low-progress', 'medium-progress', 'high-progress');
+    
+    // 根据进度添加颜色类和动画效果
+    if (progress.percentage === 100) {
+        universityProgressFill.classList.add('animated', 'high-progress');
+    } else if (progress.percentage >= 80) {
+        universityProgressFill.classList.add('high-progress');
+        universityProgressFill.classList.remove('animated');
+    } else if (progress.percentage >= 50) {
+        universityProgressFill.classList.add('medium-progress');
+        universityProgressFill.classList.remove('animated');
+    } else {
+        universityProgressFill.classList.add('low-progress');
+        universityProgressFill.classList.remove('animated');
+    }
+}
+
+// 计算当前大学的进度
+function calculateUniversityProgress(uniName) {
+    if (!universitiesData[uniName]) {
+        return { total: 0, checked: 0, percentage: 0 };
+    }
+    
+    const majors = universitiesData[uniName];
+    let checkedMajors = 0;
+    
+    majors.forEach(major => {
+        if (majorSelectionHistory[uniName] && majorSelectionHistory[uniName][major]) {
+            const checkCount = majorSelectionHistory[uniName][major].passCount + 
+                            majorSelectionHistory[uniName][major].rejectCount;
+            if (checkCount > 0) {
+                checkedMajors++;
+            }
+        }
+    });
+    
+    return {
+        total: majors.length,
+        checked: checkedMajors,
+        percentage: majors.length > 0 ? parseFloat(((checkedMajors / majors.length) * 100).toFixed(2)) : 0
+    };
+}
 
 // 初始化
 async function init() {
@@ -284,6 +348,10 @@ function initMajorCheckCounts() {
 // 保存历史记录
 function saveMajorSelectionHistory() {
     localStorage.setItem('majorSelectionHistory', JSON.stringify(majorSelectionHistory));
+    // 保存后更新大学进度条（如果当前有选中的大学）
+    if (currentUni) {
+        updateUniversityProgressBar(currentUni);
+    }
 }
 
 // 渲染大学列表
@@ -318,6 +386,9 @@ function selectUniversity(uniName) {
 
     // 移除核查次数标签
     removeCheckCountBadge();
+    
+    // 更新大学进度条显示
+    updateUniversityProgressBar(uniName);
 }
 
 // 返回大学选择

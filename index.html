@@ -14,7 +14,6 @@
 <body>
     <div class="container">
         <header>
-            <h1>英国大学专业随机选择器</h1>
             <nav>
                 <button id="homeBtn" class="nav-btn active">专业选择</button>
                 <button id="historyBtn" class="nav-btn">历史记录</button>
@@ -34,6 +33,23 @@
                 <div class="current-university">
                     <h3 id="selectedUniversity">已选择大学</h3>
                 </div>
+                
+                <!-- 大学进度条区域 -->
+                <div class="university-progress-section">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="universityProgressFill" class="progress-fill">
+                                <span id="universityProgressText" class="progress-text">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-details">
+                        <span class="progress-detail">已核查: <strong id="universityCheckedCount">0</strong></span>
+                        <span class="progress-detail">总数: <strong id="universityTotalCount">0</strong></span>
+                        <span class="progress-detail">进度: <strong id="universityPercentage">0%</strong></span>
+                    </div>
+                </div>
+                
                 <div id="majorDisplay" class="major-display">
                     <span id="currentMajor">点击下方按钮开始</span>
                 </div>
