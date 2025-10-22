@@ -498,13 +498,6 @@ function showAllMajors() {
     const majorItems = modal.querySelectorAll('.major-item');
     majorItems.forEach(item => {
         setupMajorItemClick(item, majors, modal);
-        item.addEventListener('click', () => {
-            const majorNameElement = item.querySelector('.major-name');
-            const majorName = majorNameElement.querySelector('.major-link') ?
-                majorNameElement.querySelector('.major-link').textContent :
-                majorNameElement.textContent.split('已核查')[0].trim();
-            selectMajorFromList(majors.find(m => m.includes(majorName)), modal);
-        });
     });
 }
 
@@ -537,28 +530,6 @@ function generateMajorsList(majors) {
             </div>
         `;
     }).join('');
-}
-
-// 筛选专业
-function filterMajors(searchTerm, majors, modal) {
-    const filteredMajors = majors.filter(major =>
-        major.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const majorsList = modal.querySelector('#majorsList');
-    majorsList.innerHTML = generateMajorsList(filteredMajors);
-
-    // 重新绑定点击事件
-    const majorItems = majorsList.querySelectorAll('.major-item');
-    majorItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const majorNameElement = item.querySelector('.major-name');
-            const majorName = majorNameElement.querySelector('.major-link') ?
-                majorNameElement.querySelector('.major-link').textContent :
-                majorNameElement.textContent.split('已核查')[0].trim();
-            selectMajorFromList(majors.find(m => m.includes(majorName)), modal);
-        });
-    });
 }
 
 // 从列表中选择专业
@@ -596,17 +567,22 @@ function setupMajorItemClick(item, majors, modal) {
             return;
         }
 
-        // 备用方案：从显示文本中提取
+        // 备用方案：从显示文本中提取完整专业名称（包含学位信息）
         const majorNameElement = item.querySelector('.major-name');
+        const degreeElement = item.querySelector('.major-degree');
         let fullMajorName = '';
 
         if (majorNameElement.querySelector('.major-link')) {
             // 如果有链接，获取链接文本
-            fullMajorName = majorNameElement.querySelector('.major-link').textContent;
+            const majorText = majorNameElement.querySelector('.major-link').textContent;
+            const degreeText = degreeElement ? degreeElement.textContent.trim() : '';
+            fullMajorName = degreeText ? `${majorText} ${degreeText}`.trim() : majorText;
         } else {
             // 如果没有链接，获取整个文本并去除核查次数部分
             const fullText = majorNameElement.textContent;
-            fullMajorName = fullText.split('已核查')[0].trim();
+            const majorText = fullText.split('已核查')[0].trim();
+            const degreeText = degreeElement ? degreeElement.textContent.trim() : '';
+            fullMajorName = degreeText ? `${majorText} ${degreeText}`.trim() : majorText;
         }
 
         // 在专业列表中精确匹配
@@ -614,14 +590,8 @@ function setupMajorItemClick(item, majors, modal) {
         if (exactMajor) {
             selectMajorFromList(exactMajor, modal);
         } else {
-            // 如果精确匹配失败，使用包含匹配
-            const similarMajor = majors.find(m => m.includes(fullMajorName));
-            if (similarMajor) {
-                selectMajorFromList(similarMajor, modal);
-            } else {
-                console.error('未找到匹配的专业:', fullMajorName);
-                alert('选择专业时出现错误，请重试');
-            }
+            console.error('未找到匹配的专业:', fullMajorName);
+            alert('选择专业时出现错误，请重试');
         }
     });
 }
