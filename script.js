@@ -153,7 +153,6 @@ function generateMajorUrl(university, major) {
 
     // 生成最终URL
     const finalUrl = `${baseUrl}/${urlSlug}/`;
-    console.log('使用生成链接:', finalUrl); // 添加日志以便调试
     return finalUrl;
 }
 
@@ -235,8 +234,10 @@ function calculateUniversityProgress(uniName) {
     
     majors.forEach(major => {
         if (majorSelectionHistory[uniName] && majorSelectionHistory[uniName][major]) {
-            const checkCount = majorSelectionHistory[uniName][major].passCount + 
-                            majorSelectionHistory[uniName][major].rejectCount;
+            const record = majorSelectionHistory[uniName][major];
+            const passCount = record.passCount || 0;
+            const rejectCount = record.rejectCount || 0;
+            const checkCount = passCount + rejectCount;
             if (checkCount > 0) {
                 checkedMajors++;
             }
@@ -321,7 +322,6 @@ function setupHistoryActions() {
     passBtn.addEventListener('click', () => handleDecision('pass'));
     rejectBtn.addEventListener('click', () => handleDecision('reject'));
     backToUniBtn.addEventListener('click', backToUniversitySelection);
-    universityFilter.addEventListener('change', renderHistory);
     viewAllBtn.addEventListener('click', showAllMajors);
 
 // 初始化专业核查次数
@@ -447,7 +447,18 @@ function showAllMajors() {
             </div>
             <div class="majors-stats">
                 <span>共 <strong>${majors.length}</strong> 个专业</span>
-                <span>点击专业可快速选择</span>
+                <span>点击专业可快速选择 | 勾选复选框可批量操作</span>
+            </div>
+            <div class="batch-actions">
+                <div class="batch-controls">
+                    <button class="batch-btn select-all-btn">全选</button>
+                    <button class="batch-btn select-none-btn">全不选</button>
+                    <button class="batch-btn invert-selection-btn">反选</button>
+                    <span class="selected-count">已选择: <strong>0</strong> 个专业</span>
+                </div>
+                <div class="batch-operations">
+                    <button class="batch-btn batch-pass-btn">批量通过选中的专业</button>
+                </div>
             </div>
             <div class="majors-search">
                 <input type="text" class="search-input" placeholder="搜索专业名称...">
@@ -499,9 +510,13 @@ function showAllMajors() {
     majorItems.forEach(item => {
         setupMajorItemClick(item, majors, modal);
     });
+
+    // 批量操作事件监听
+    setupBatchActions(modal, majors);
 }
 
 // 生成专业列表HTML
+// 更新生成专业列表HTML的函数，添加data属性
 function generateMajorsList(majors) {
     if (majors.length === 0) {
         return '<div class="no-results">暂无专业数据</div>';
@@ -524,9 +539,14 @@ function generateMajorsList(majors) {
             majorName;
 
         return `
-            <div class="major-item">
-                <div class="major-name">${majorLink}${checkBadge}</div>
-                <div class="major-degree">${degree}</div>
+            <div class="major-item" data-major="${major.replace(/"/g, '&quot;')}">
+                <div class="major-checkbox">
+                    <input type="checkbox" class="major-checkbox-input" data-major="${major.replace(/"/g, '&quot;')}">
+                </div>
+                <div class="major-info">
+                    <div class="major-name">${majorLink}${checkBadge}</div>
+                    <div class="major-degree">${degree}</div>
+                </div>
             </div>
         `;
     }).join('');
@@ -559,7 +579,13 @@ function selectMajorFromList(selectedMajor, modal) {
 
 // 修改专业项点击事件处理
 function setupMajorItemClick(item, majors, modal) {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+        // 如果点击的是复选框，不触发专业跳转
+        if (e.target.classList.contains('major-checkbox-input') || 
+            e.target.closest('.major-checkbox')) {
+            return;
+        }
+        
         // 直接从 data 属性获取完整专业名称
         const majorName = item.getAttribute('data-major');
         if (majorName) {
@@ -596,37 +622,6 @@ function setupMajorItemClick(item, majors, modal) {
     });
 }
 
-// 更新生成专业列表HTML的函数，添加data属性
-function generateMajorsList(majors) {
-    if (majors.length === 0) {
-        return '<div class="no-results">暂无专业数据</div>';
-    }
-
-    return majors.map(major => {
-        // 分离专业名称和学位
-        const lastParen = major.lastIndexOf('(');
-        const majorName = lastParen !== -1 ? major.substring(0, lastParen).trim() : major;
-        const degree = lastParen !== -1 ? major.substring(lastParen) : '';
-
-        // 获取核查次数
-        const checkCount = getTotalCheckCount(currentUni, major);
-        const checkBadge = checkCount > 0 ? `<span class="major-check-badge">已核查${checkCount}次</span>` : '';
-
-        // 生成专业链接
-        const majorUrl = generateMajorUrl(currentUni, major);
-        const majorLink = majorUrl ?
-            `<a href="${majorUrl}" target="_blank" class="major-link">${majorName}</a>` :
-            majorName;
-
-        return `
-            <div class="major-item" data-major="${major.replace(/"/g, '&quot;')}">
-                <div class="major-name">${majorLink}${checkBadge}</div>
-                <div class="major-degree">${degree}</div>
-            </div>
-        `;
-    }).join('');
-}
-
 // 更新搜索功能中的事件绑定
 function filterMajors(searchTerm, majors, modal) {
     const filteredMajors = majors.filter(major =>
@@ -651,6 +646,143 @@ function closeMajorsModal(modal) {
             modal.parentNode.removeChild(modal);
         }
     }, 300);
+}
+
+// 设置批量操作功能
+function setupBatchActions(modal, majors) {
+    // 获取批量操作元素
+    const selectAllBtn = modal.querySelector('.select-all-btn');
+    const selectNoneBtn = modal.querySelector('.select-none-btn');
+    const invertSelectionBtn = modal.querySelector('.invert-selection-btn');
+    const batchPassBtn = modal.querySelector('.batch-pass-btn');
+    const selectedCount = modal.querySelector('.selected-count strong');
+
+    // 更新选中数量显示
+    function updateSelectedCount() {
+        const checkboxes = modal.querySelectorAll('.major-checkbox-input:checked');
+        selectedCount.textContent = checkboxes.length;
+    }
+
+    // 全选功能
+    selectAllBtn.addEventListener('click', () => {
+        const checkboxes = modal.querySelectorAll('.major-checkbox-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateSelectedCount();
+    });
+
+    // 全不选功能
+    selectNoneBtn.addEventListener('click', () => {
+        const checkboxes = modal.querySelectorAll('.major-checkbox-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedCount();
+    });
+
+    // 反选功能
+    invertSelectionBtn.addEventListener('click', () => {
+        const checkboxes = modal.querySelectorAll('.major-checkbox-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !checkbox.checked;
+        });
+        updateSelectedCount();
+    });
+
+    // 批量通过功能
+    batchPassBtn.addEventListener('click', () => {
+        const checkboxes = modal.querySelectorAll('.major-checkbox-input:checked');
+        if (checkboxes.length === 0) {
+            return;
+        }
+
+        checkboxes.forEach(checkbox => {
+            const major = checkbox.getAttribute('data-major');
+            batchPassMajor(major);
+            
+            // 更新专业项的核查标记
+            const majorItem = checkbox.closest('.major-item');
+            if (majorItem) {
+                updateMajorItemStatus(majorItem, major);
+            }
+        });
+        
+        // 更新进度条显示
+        updateUniversityProgressBar(currentUni);
+        
+        // 重新渲染历史记录
+        renderHistory();
+        
+        // 关闭模态框
+        closeMajorsModal(modal);
+        
+        // 显示通知
+        showNotification(`已通过 ${checkboxes.length} 条专业`);
+    });
+
+    // 复选框变化时更新选中数量
+    modal.addEventListener('change', (e) => {
+        if (e.target.classList.contains('major-checkbox-input')) {
+            updateSelectedCount();
+        }
+    });
+
+    // 初始化选中数量
+    updateSelectedCount();
+}
+
+// 批量通过单个专业
+function batchPassMajor(major) {
+    const timestamp = new Date().toLocaleString();
+
+    // 初始化数据结构
+    if (!majorSelectionHistory[currentUni]) {
+        majorSelectionHistory[currentUni] = {};
+    }
+    if (!majorSelectionHistory[currentUni][major]) {
+        majorSelectionHistory[currentUni][major] = {
+            passCount: 0,
+            rejectCount: 0,
+            lastDecision: null,
+            lastTimestamp: null,
+            rejectReason: ''
+        };
+    }
+
+    // 确保核查次数有初始值
+    const record = majorSelectionHistory[currentUni][major];
+    record.passCount = record.passCount || 0;
+    record.rejectCount = record.rejectCount || 0;
+
+    // 设置为通过状态
+    record.passCount++;
+    record.lastDecision = 'pass';
+    record.lastTimestamp = timestamp;
+    record.rejectReason = '';
+
+    // 保存到本地存储
+    saveMajorSelectionHistory();
+}
+
+// 更新专业项的核查标记状态
+function updateMajorItemStatus(majorItem, major) {
+    const checkCount = getTotalCheckCount(currentUni, major);
+    const majorNameElement = majorItem.querySelector('.major-name');
+    
+    // 移除现有的核查标记
+    const existingBadge = majorNameElement.querySelector('.major-check-badge');
+    if (existingBadge) {
+        existingBadge.remove();
+    }
+    
+    // 如果有核查次数，添加新的核查标记
+    if (checkCount > 0) {
+        const checkBadge = document.createElement('span');
+        checkBadge.className = 'major-check-badge';
+        checkBadge.textContent = `已核查${checkCount}次`;
+        majorNameElement.appendChild(checkBadge);
+    }
 }
 
 // 开始随机选择
@@ -736,12 +868,17 @@ function handleDecision(decision) {
         };
     }
 
+    // 确保核查次数有初始值
+    const record = majorSelectionHistory[currentUni][major];
+    record.passCount = record.passCount || 0;
+    record.rejectCount = record.rejectCount || 0;
+
     // 增加对应的计数
     if (decision === 'pass') {
-        majorSelectionHistory[currentUni][major].passCount++;
-        majorSelectionHistory[currentUni][major].lastDecision = 'pass';
-        majorSelectionHistory[currentUni][major].lastTimestamp = timestamp;
-        majorSelectionHistory[currentUni][major].rejectReason = ''; // 清空原因（通过时不需要）
+        record.passCount++;
+        record.lastDecision = 'pass';
+        record.lastTimestamp = timestamp;
+        record.rejectReason = ''; // 清空原因（通过时不需要）
     } else {
         // 不通过：弹出输入框，暂不保存
         showRejectReasonModal(currentUni, major);
@@ -827,11 +964,13 @@ function saveRejectReason() {
         };
     }
 
+    // 确保核查次数有初始值
+    const record = majorSelectionHistory[uniName][major];
+    record.passCount = record.passCount || 0;
+    record.rejectCount = record.rejectCount || 0;
+
     // 更新历史记录数据 - 增加拒绝次数
-    if (!majorSelectionHistory[uniName][major].rejectCount) {
-        majorSelectionHistory[uniName][major].rejectCount = 0;
-    }
-    majorSelectionHistory[uniName][major].rejectCount++;
+    record.rejectCount++;
     majorSelectionHistory[uniName][major].rejectReason = rejectReason;
     majorSelectionHistory[uniName][major].lastDecision = 'reject';
     majorSelectionHistory[uniName][major].lastTimestamp = new Date().toLocaleString();
@@ -988,21 +1127,25 @@ function renderHistory() {
                     }
                     
                     if (shouldInclude) {
+                        // 确保核查次数有默认值
+                        const passCount = data.passCount || 0;
+                        const rejectCount = data.rejectCount || 0;
+                        
                         allHistory.push({
                             university: uniName,
                             major: major,
                             decision: data.lastDecision,
                             timestamp: data.lastTimestamp,
-                            passCount: data.passCount,
-                            rejectCount: data.rejectCount,
-                            totalCount: data.passCount + data.rejectCount,
+                            passCount: passCount,
+                            rejectCount: rejectCount,
+                            totalCount: passCount + rejectCount,
                             rejectReason: data.rejectReason || '',
                             isModified: isModified
                         });
                         
-                        totalEntries += data.passCount + data.rejectCount;
-                        totalPass += data.passCount;
-                        totalReject += data.rejectCount;
+                        totalEntries += passCount + rejectCount;
+                        totalPass += passCount;
+                        totalReject += rejectCount;
                         if (isModified) totalModified++; // 统计已修改数量
                     }
                 }
@@ -1272,7 +1415,10 @@ function deleteHistoryRecord(uniName, major) {
     }
 
     // 确认对话框
-    if (confirm(`确定要删除 ${uniName} - ${major} 的历史记录吗？\n\n通过: ${majorSelectionHistory[uniName][major].passCount}次\n不通过: ${majorSelectionHistory[uniName][major].rejectCount}次`)) {
+    const record = majorSelectionHistory[uniName][major];
+    const passCount = record.passCount || 0;
+    const rejectCount = record.rejectCount || 0;
+    if (confirm(`确定要删除 ${uniName} - ${major} 的历史记录吗？\n\n通过: ${passCount}次\n不通过: ${rejectCount}次`)) {
         // 重置该专业的记录（不清除数据结构，只重置计数和时间戳）
         majorSelectionHistory[uniName][major] = {
             passCount: 0,
